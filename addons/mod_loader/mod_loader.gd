@@ -26,7 +26,6 @@ signal logged(entry: ModLoaderLog.ModLoaderLogEntry)
 ## Use the [member ModConfig.mod_id] of the [ModConfig] to check if the config of your mod has changed.
 signal current_config_changed(config: ModConfig)
 
-
 const LOG_NAME := "ModLoader"
 
 
@@ -34,6 +33,14 @@ const LOG_NAME := "ModLoader"
 # =============================================================================
 
 func _init() -> void:
+	if not OS.has_feature("editor"):
+		# Load mod hooks
+		var load_hooks_pack_success := ProjectSettings.load_resource_pack(pack_path)
+		if not load_hooks_pack_success:
+			ModLoaderLog.error("Failed loading hooks pack from: %s" % pack_path, LOG_NAME)
+		else:
+			ModLoaderLog.debug("Successfully loaded hooks pack from: %s" % pack_path, LOG_NAME)
+
 	# Ensure the ModLoaderStore and ModLoader autoloads are in the correct position.
 	_check_autoload_positions()
 
@@ -71,10 +78,19 @@ func _ready():
 	# Update the mod_list for each user profile
 	var _success_update_mod_lists := ModLoaderUserProfile._update_mod_lists()
 
+	if not OS.has_feature("editor"):
+		# Generate mod hooks
+		var mod_hook_packer := preload("res://addons/mod_loader/internal/mod_hook_packer.gd").new()
+		var pack_path := mod_hook_packer.run_script()
+
 
 func _exit_tree() -> void:
 	# Save the cache stored in ModLoaderStore to the cache file.
 	_ModLoaderCache.save_to_file()
+
+
+func are_mods_disabled() -> bool:
+	return false
 
 
 func _load_mods() -> void:

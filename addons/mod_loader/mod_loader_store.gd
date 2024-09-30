@@ -175,7 +175,7 @@ func _update_ml_options_from_options_resource() -> void:
 	var ml_options_path := "res://addons/mod_loader/options/options.tres"
 
 	# Get user options for ModLoader
-	if not _ModLoaderFile.file_exists(ml_options_path):
+	if not _ModLoaderFile.file_exists(ml_options_path) and not ResourceLoader.exists(ml_options_path):
 		ModLoaderLog.fatal(str("A critical file is missing: ", ml_options_path), LOG_NAME)
 
 	var options_resource: ModLoaderCurrentOptions = load(ml_options_path)

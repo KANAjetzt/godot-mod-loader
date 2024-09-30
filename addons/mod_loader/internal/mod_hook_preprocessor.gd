@@ -1,3 +1,4 @@
+class_name ModLoaderModHookPreProcessor
 extends Object
 
 const REQUIRE_EXPLICIT_ADDITION := false
@@ -253,10 +254,10 @@ static func get_mod_loader_hook(
 
 	return """
 {%STATIC%}func {%METHOD_NAME%}({%METHOD_PARAMS%}){%RETURN_TYPE_STRING%}:
-	if ModLoaderStore.any_mod_hooked:
+	if ModLoaderStore.get("any_mod_hooked") and ModLoaderStore.any_mod_hooked:
 		ModLoaderMod.call_hooks({%SELF%}, [{%METHOD_ARGS%}], {%HOOK_ID_BEFORE%})
 	{%METHOD_RETURN_VAR%}{%METHOD_PREFIX%}_{%METHOD_NAME%}({%METHOD_ARGS%})
-	if ModLoaderStore.any_mod_hooked:
+	if ModLoaderStore.get("any_mod_hooked") and ModLoaderStore.any_mod_hooked:
 		ModLoaderMod.call_hooks({%SELF%}, [{%METHOD_ARGS%}], {%HOOK_ID_AFTER%})
 	{%METHOD_RETURN%}""".format({
 		"%METHOD_PREFIX%": method_prefix,
