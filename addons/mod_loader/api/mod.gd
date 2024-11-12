@@ -11,32 +11,6 @@ extends Object
 const LOG_NAME := "ModLoader:Mod"
 
 
-static func set_modding_hooks(new_callable_stack: Dictionary) -> void:
-	ModLoaderStore.modding_hooks = new_callable_stack
-
-
-static func add_hook(mod_callable: Callable, script_path: String, method_name: String, is_before := false) -> void:
-	ModLoaderStore.any_mod_hooked = true
-	var hash = get_hook_hash(script_path,method_name,is_before)
-	if not ModLoaderStore.modding_hooks.has(hash):
-		ModLoaderStore.modding_hooks[hash] = []
-	ModLoaderStore.modding_hooks[hash].push_back(mod_callable)
-	ModLoaderLog.debug("Added hook script: \"%s\" method: \"%s\" is_before: \"%s\"" % [script_path, method_name, is_before], LOG_NAME)
-	if not ModLoaderStore.hooked_script_paths.has(script_path):
-		ModLoaderStore.hooked_script_paths[script_path] = null
-
-
-static func call_hooks(self_object: Object, args: Array, hook_hash:int) -> void:
-	var hooks = ModLoaderStore.modding_hooks.get(hook_hash, null)
-	if hooks:
-		for mod_func in hooks:
-			mod_func.call(self_object, args)
-
-
-static func get_hook_hash(path:String, method:String, is_before:bool) -> int:
-	return hash(path + method + ("before" if is_before else "after"))
-
-
 ## Installs a script extension that extends a vanilla script.[br]
 ## The [code]child_script_path[/code] should point to your mod's extender script.[br]
 ## Example: [code]"MOD/extensions/singletons/utils.gd"[/code][br]
@@ -51,7 +25,6 @@ static func get_hook_hash(path:String, method:String, is_before:bool) -> int:
 ##
 ## [br][b]Returns:[/b] [code]void[/code][br]
 static func install_script_extension(child_script_path: String) -> void:
-
 	var mod_id: String = _ModLoaderPath.get_mod_dir(child_script_path)
 	var mod_data: ModData = get_mod_data(mod_id)
 	if not ModLoaderStore.saved_extension_paths.has(mod_data.manifest.get_mod_id()):
@@ -66,6 +39,12 @@ static func install_script_extension(child_script_path: String) -> void:
 	# If not, apply the extension directly
 	else:
 		_ModLoaderScriptExtension.apply_extension(child_script_path)
+
+
+## Adds a mod hook
+# TODO: detailed doc
+static func add_hook(mod_callable: Callable, script_path: String, method_name: String, is_before := false) -> void:
+	_ModLoaderHooks.add_hook(mod_callable, script_path, method_name, is_before)
 
 
 ## Registers an array of classes to the global scope since Godot only does that in the editor.[br]
@@ -84,8 +63,9 @@ static func register_global_classes_from_array(new_global_classes: Array) -> voi
 	var _savecustom_error: int = ProjectSettings.save_custom(_ModLoaderPath.get_override_path())
 
 
-## Adds a translation file.[br]
-##[br]
+## Adds a translation file.
+## [br]
+## [br]
 ## [i]Note: The translation file should have been created in Godot already,
 ## such as when importing a CSV file. The translation file should be in the format  [code]mytranslation.en.translation[/code].[/i][br]
 ##
@@ -106,19 +86,20 @@ static func add_translation(resource_path: String) -> void:
 		ModLoaderLog.fatal("Failed to load translation at path: %s" % [resource_path], LOG_NAME)
 	
 
+
 ## [i]Note: This function requires Godot 4.3 or higher.[/i][br]
-##[br]
+## [br]
 ## Refreshes a specific scene by marking it for refresh.[br]
-##[br]
+## [br]
 ## This function is useful if a script extension is not automatically applied.
 ## This situation can occur when a script is attached to a preloaded scene.
 ## If you encounter issues where your script extension is not working as expected,
 ## try to identify the scene to which it is attached and use this method to refresh it.
 ## This will reload already loaded scenes and apply the script extension.
-##[br]
+## [br]
 ## [br][b]Parameters:[/b][br]
 ## - [code]scene_path[/code] (String): The path to the scene file to be refreshed.
-##[br]
+## [br]
 ## [br][b]Returns:[/b] [code]void[/code][br]
 static func refresh_scene(scene_path: String) -> void:
 	if scene_path in ModLoaderStore.scenes_to_refresh:
@@ -196,12 +177,12 @@ static func is_mod_loaded(mod_id: String) -> bool:
 	return true
 
 
-# Returns true if the mod with the given mod_id was successfully loaded and is currently active.
-#
-# Parameters:
-# - mod_id (String): The ID of the mod.
-#
-# Returns:
-# - bool: true if the mod is loaded and active, false otherwise.
+## Returns true if the mod with the given mod_id was successfully loaded and is currently active.
+## [br]
+## Parameters:
+## - mod_id (String): The ID of the mod.
+## [br]
+## Returns:
+## - bool: true if the mod is loaded and active, false otherwise.
 static func is_mod_active(mod_id: String) -> bool:
 	return is_mod_loaded(mod_id) and ModLoaderStore.mod_data[mod_id].is_active

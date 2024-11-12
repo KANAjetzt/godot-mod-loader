@@ -57,11 +57,11 @@ func process_script(path: String) -> String:
 			if getters_setters.has(method.name):
 				return false
 
-			var method_first_line_start := get_index_at_method_start(method.name, source_code)
+			var method_first_line_start := _ModLoaderModHookPreProcessor.get_index_at_method_start(method.name, source_code)
 			if method_first_line_start == -1:
 				return false
 
-			if not is_func_marked_moddable(method_first_line_start, source_code):
+			if not _ModLoaderModHookPreProcessor.is_func_marked_moddable(method_first_line_start, source_code):
 				return false
 
 			return true
@@ -76,8 +76,8 @@ func process_script(path: String) -> String:
 		var method_arg_string_with_defaults_and_types := get_function_parameters(method.name, source_code, is_static)
 		var method_arg_string_names_only := get_function_arg_name_string(method.args)
 
-		var hash_before := ModLoaderMod.get_hook_hash(path, method.name, true)
-		var hash_after := ModLoaderMod.get_hook_hash(path, method.name, false)
+		var hash_before := _ModLoaderHooks.get_hook_hash(path, method.name, true)
+		var hash_after := _ModLoaderHooks.get_hook_hash(path, method.name, false)
 		var hash_before_data := [path, method.name,true]
 		var hash_after_data := [path, method.name,false]
 		if hashmap.has(hash_before):
@@ -266,10 +266,10 @@ static func get_mod_loader_hook(
 	return """
 {%STATIC%}func {%METHOD_NAME%}({%METHOD_PARAMS%}){%RETURN_TYPE_STRING%}:
 	if ModLoaderStore.get("any_mod_hooked") and ModLoaderStore.any_mod_hooked:
-		ModLoaderMod.call_hooks({%SELF%}, [{%METHOD_ARGS%}], {%HOOK_ID_BEFORE%})
+		_ModLoaderHooks.call_hooks({%SELF%}, [{%METHOD_ARGS%}], {%HOOK_ID_BEFORE%})
 	{%METHOD_RETURN_VAR%}{%METHOD_PREFIX%}_{%METHOD_NAME%}({%METHOD_ARGS%})
 	if ModLoaderStore.get("any_mod_hooked") and ModLoaderStore.any_mod_hooked:
-		ModLoaderMod.call_hooks({%SELF%}, [{%METHOD_ARGS%}], {%HOOK_ID_AFTER%})
+		_ModLoaderHooks.call_hooks({%SELF%}, [{%METHOD_ARGS%}], {%HOOK_ID_AFTER%})
 	{%METHOD_RETURN%}""".format({
 		"%METHOD_PREFIX%": method_prefix,
 		"%METHOD_NAME%": method_name,
@@ -350,7 +350,7 @@ static func get_return_type_string(return_data: Dictionary) -> String:
 	else:
 		type_base = type_string(return_data.type)
 
-	var type_hint := "" if return_data.hint_string.is_empty() else ("[%s]" % return_data.hint_string)
+	var type_hint: String = "" if return_data.hint_string.is_empty() else ("[%s]" % return_data.hint_string)
 
 	return "%s%s" % [type_base, type_hint]
 
