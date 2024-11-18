@@ -26,7 +26,7 @@ static func call_hooks(self_object: Object, args: Array, hook_hash: int) -> void
 	if not hooks:
 		return
 
-	for mod_func: Callable in hooks:
+	for mod_func in hooks:
 		mod_func.callv([self_object] + args)
 
 
