@@ -335,24 +335,31 @@ static func build_mod_hook_string(
 	var async_string := "_async" if is_async else ""
 	var return_var := "var %s = " % "return_var" if not method_type.is_empty() or return_prop_usage == 131072 else ""
 	var method_return := "return " if not method_type.is_empty() or return_prop_usage == 131072 else ""
-	var hook_check := 'if ModLoaderStore.get("any_mod_hooked") and ModLoaderStore.any_mod_hooked:\n\t\t' if enable_hook_check else ""
+	var hook_check := 'if ModLoaderStore.any_mod_hooked:\n\t\t' if enable_hook_check else ""
+	var hook_check_return := '\n\treturn {AWAIT}{METHOD_PREFIX}_{METHOD_NAME}({METHOD_ARGS})'.format(
+		{
+			"METHOD_PREFIX": method_prefix,
+			"METHOD_NAME": method_name,
+			"METHOD_ARGS": method_arg_string_names_only,
+			"AWAIT": await_string
+		}) if enable_hook_check and not method_return.is_empty() else ""
 
 	return """
 {STATIC}func {METHOD_NAME}({METHOD_PARAMS}){RETURN_TYPE_STRING}:
-	{HOOK_CHECK}{METHOD_RETURN}{AWAIT}_ModLoaderHooks.call_hooks{ASYNC}({METHOD_PREFIX}_{METHOD_NAME}, [{METHOD_ARGS}], {HOOK_ID})
+	{HOOK_CHECK}{METHOD_RETURN}{AWAIT}_ModLoaderHooks.call_hooks{ASYNC}({METHOD_PREFIX}_{METHOD_NAME}, [{METHOD_ARGS}], {HOOK_ID}){HOOK_CHECK_RETURN}
 """.format({
 		"METHOD_PREFIX": method_prefix,
 		"METHOD_NAME": method_name,
 		"METHOD_PARAMS": method_arg_string_with_defaults_and_types,
 		"RETURN_TYPE_STRING": type_string,
 		"METHOD_ARGS": method_arg_string_names_only,
-		"METHOD_RETURN_VAR": return_var,
 		"METHOD_RETURN": method_return,
 		"STATIC": static_string,
 		"AWAIT": await_string,
 		"ASYNC": async_string,
 		"HOOK_ID": hook_id,
 		"HOOK_CHECK": hook_check,
+		"HOOK_CHECK_RETURN": hook_check_return
 	})
 
 
