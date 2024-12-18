@@ -72,7 +72,7 @@ static func get_steam_workshop_id(zip_path: String) -> String:
 # original version of this script, before becoming deprecated. It may still be
 # used if DEBUG_ENABLE_STORING_FILEPATHS is true.
 # Source: https://gist.github.com/willnationsdev/00d97aa8339138fd7ef0d6bd42748f6e
-static func get_flat_view_dict(p_dir := "res://", p_match := "", p_match_is_regex := false) -> PackedStringArray:
+static func get_flat_view_dict(p_dir := "res://", p_dir_exclude: Array[String] = [], p_match := "", p_match_is_regex := false) -> PackedStringArray:
 	var data: PackedStringArray = []
 	var regex: RegEx
 	if p_match_is_regex:
@@ -86,6 +86,9 @@ static func get_flat_view_dict(p_dir := "res://", p_match := "", p_match_is_rege
 	while not dirs.is_empty():
 		var dir_name: String = dirs.back()
 		dirs.pop_back()
+
+		if dir_name in p_dir_exclude:
+			continue
 
 		var dir := DirAccess.open(dir_name)
 
