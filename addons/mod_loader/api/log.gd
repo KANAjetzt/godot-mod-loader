@@ -1,3 +1,4 @@
+@tool
 class_name ModLoaderLog
 extends Object
 ##
@@ -7,14 +8,40 @@ extends Object
 # Path to the latest log file.
 const MOD_LOG_PATH := "user://logs/modloader.log"
 
-const LOG_NAME := "ModLoader:Log"
+const _LOG_NAME := "ModLoader:Log"
 
+## Denotes the severity of a log entry
 enum VERBOSITY_LEVEL {
-	ERROR,
-	WARNING,
-	INFO,
-	DEBUG,
+	ERROR, 		## For errors and fatal errors
+	WARNING, 	## For warnings
+	INFO, 		## For everything informational and successes
+	DEBUG, 		## For debugging, can get quite verbose
 }
+
+## Keeps track of logged messages, to avoid flooding the log with duplicate notices
+## Can also be used by mods, eg. to create an in-game developer console that
+## shows messages
+static var logged_messages := {
+	"all": {},
+	"by_mod": {},
+	"by_type": {
+		"fatal-error": {},
+		"error": {},
+		"warning": {},
+		"info": {},
+		"success": {},
+		"debug": {},
+	}
+}
+
+## Verbosity/Logging level.
+## Used to filter out messages below the set level
+## (if the [enum VERBOSITY_LEVEL] int of a new entry is larger than the [member verbosity] it is ignored)
+static var verbosity: VERBOSITY_LEVEL = VERBOSITY_LEVEL.DEBUG
+
+## Array of mods that should be ignored when logging messages (contains mod IDs as strings)
+static var ignored_mods: Array[String] = []
+
 
 ## This Sub-Class represents a log entry in ModLoader.
 class ModLoaderLogEntry:
@@ -45,10 +72,10 @@ class ModLoaderLogEntry:
 	## Initialize a ModLoaderLogEntry object with provided values.[br]
 	##[br]
 	## [b]Parameters:[/b][br]
-	## - [code]_mod_name[/code] ([String]): Name of the mod or ModLoader class this entry refers to.[br]
-	## - [code]_message[/code] ([String]): The message of the log entry.[br]
-	## - [code]_type[/code] ([String]): The log type, which indicates the verbosity level of this entry.[br]
-	## - [code]_time[/code] ([String]): The readable format of the time when this log entry was created.[br]
+	## [param _mod_name] ([String]): Name of the mod or ModLoader class this entry refers to.[br]
+	## [param _message] ([String]): The message of the log entry.[br]
+	## [param _type] ([String]): The log type, which indicates the verbosity level of this entry.[br]
+	## [param _time] ([String]): The readable format of the time when this log entry was created.[br]
 	##[br]
 	## [b]Returns:[/b] [code]void[/code]
 	func _init(_mod_name: String, _message: String, _type: String, _time: String) -> void:
@@ -99,9 +126,9 @@ class ModLoaderLogEntry:
 ## [i]Note: Stops the execution in editor[/i][br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as an error.[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as an error.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ## [br]
 ## [b]Returns:[/b] [code]void[/code]
 static func fatal(message: String, mod_name: String, only_once := false) -> void:
@@ -113,9 +140,9 @@ static func fatal(message: String, mod_name: String, only_once := false) -> void
 ## [i]Note: Always logged[/i][br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as an error.[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as an error.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ## [br]
 ## [b]Returns:[/b] [code]void[/code]
 static func error(message: String, mod_name: String, only_once := false) -> void:
@@ -127,9 +154,9 @@ static func error(message: String, mod_name: String, only_once := false) -> void
 ## [i]Note: Logged with verbosity level at or above warning (-v).[/i][br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as a warning.[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as a warning.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ## [br]
 ## [b]Returns:[/b] [code]void[/code]
 static func warning(message: String, mod_name: String, only_once := false) -> void:
@@ -141,9 +168,9 @@ static func warning(message: String, mod_name: String, only_once := false) -> vo
 ## [i]Note: Logged with verbosity level at or above info (-vv).[/i][br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as an information.[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as an information.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ## [br]
 ## [b]Returns:[/b] [code]void[/code]
 static func info(message: String, mod_name: String, only_once := false) -> void:
@@ -155,9 +182,9 @@ static func info(message: String, mod_name: String, only_once := false) -> void:
 ## [i]Note: Logged with verbosity level at or above info (-vv).[/i][br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as a success.[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as a success.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ## [br]
 ## [b]Returns:[/b] [code]void[/code]
 static func success(message: String, mod_name: String, only_once := false) -> void:
@@ -169,9 +196,9 @@ static func success(message: String, mod_name: String, only_once := false) -> vo
 ## [i]Note: Logged with verbosity level at or above debug (-vvv).[/i][br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as a debug.[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as a debug.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ## [br]
 ## [b]Returns:[/b] [code]void[/code]
 static func debug(message: String, mod_name: String, only_once := false) -> void:
@@ -183,10 +210,10 @@ static func debug(message: String, mod_name: String, only_once := false) -> void
 ## [i]Note: Logged with verbosity level at or above debug (-vvv).[/i] [br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]message[/code] ([String]): The message to be logged as a debug.[br]
-## - [code]json_printable[/code] (Variant): The variable to be formatted and printed using [method JSON.print].[br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
-## - [code]only_once[/code] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
+## [param message] ([String]): The message to be logged as a debug.[br]
+## [param json_printable] (Variant): The variable to be formatted and printed using [method JSON.print].[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with this log entry.[br]
+## [param only_once] ([bool]): (Optional) If true, the log entry will only be logged once, even if called multiple times. Default is false.[br]
 ##
 ## [b]Returns:[/b] [code]void[/code]
 static func debug_json_print(message: String, json_printable, mod_name: String, only_once := false) -> void:
@@ -218,7 +245,7 @@ static func get_all_as_string() -> Array:
 ## Returns an array of log entries as a resource for a specific mod_name.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with the log entries.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with the log entries.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries represented as resource for the specified [code]mod_name[/code].
@@ -229,7 +256,7 @@ static func get_by_mod_as_resource(mod_name: String) -> Array:
 ## Returns an array of log entries as a string for a specific mod_name.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with the log entries.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with the log entries.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries represented as strings for the specified [code]mod_name[/code].
@@ -241,7 +268,7 @@ static func get_by_mod_as_string(mod_name: String) -> Array:
 ## Returns an array of log entries as a resource for a specific type.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]type[/code] ([String]): The log type associated with the log entries.[br]
+## [param type] ([String]): The log type associated with the log entries.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries represented as resource for the specified [code]type[/code].
@@ -252,7 +279,7 @@ static func get_by_type_as_resource(type: String) -> Array:
 ## Returns an array of log entries as a string for a specific type.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]type[/code] ([String]): The log type associated with the log entries.[br]
+## [param type] ([String]): The log type associated with the log entries.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries represented as strings for the specified [code]type[/code].
@@ -269,8 +296,8 @@ static func get_all() -> Array:
 	var log_entries := []
 
 	# Get all log entries
-	for entry_key in ModLoaderStore.logged_messages.all.keys():
-		var entry: ModLoaderLogEntry = ModLoaderStore.logged_messages.all[entry_key]
+	for entry_key in logged_messages.all.keys():
+		var entry: ModLoaderLogEntry = logged_messages.all[entry_key]
 		log_entries.append_array(entry.get_all_entries())
 
 	# Sort them by time
@@ -282,19 +309,19 @@ static func get_all() -> Array:
 ## Returns an array of log entries for a specific mod_name.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]mod_name[/code] ([String]): The name of the mod or ModLoader class associated with the log entries.[br]
+## [param mod_name] ([String]): The name of the mod or ModLoader class associated with the log entries.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries for the specified [code]mod_name[/code].
 static func get_by_mod(mod_name: String) -> Array:
 	var log_entries := []
 
-	if not ModLoaderStore.logged_messages.by_mod.has(mod_name):
-		error("\"%s\" not found in logged messages." % mod_name, LOG_NAME)
+	if not logged_messages.by_mod.has(mod_name):
+		error("\"%s\" not found in logged messages." % mod_name, _LOG_NAME)
 		return []
 
-	for entry_key in ModLoaderStore.logged_messages.by_mod[mod_name].keys():
-		var entry: ModLoaderLogEntry = ModLoaderStore.logged_messages.by_mod[mod_name][entry_key]
+	for entry_key in logged_messages.by_mod[mod_name].keys():
+		var entry: ModLoaderLogEntry = logged_messages.by_mod[mod_name][entry_key]
 		log_entries.append_array(entry.get_all_entries())
 
 	return log_entries
@@ -303,15 +330,15 @@ static func get_by_mod(mod_name: String) -> Array:
 ## Returns an array of log entries for a specific type.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]type[/code] ([String]): The log type associated with the log entries.[br]
+## [param type] ([String]): The log type associated with the log entries.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries for the specified [code]type[/code].
 static func get_by_type(type: String) -> Array:
 	var log_entries := []
 
-	for entry_key in ModLoaderStore.logged_messages.by_type[type].keys():
-		var entry: ModLoaderLogEntry = ModLoaderStore.logged_messages.by_type[type][entry_key]
+	for entry_key in logged_messages.by_type[type].keys():
+		var entry: ModLoaderLogEntry = logged_messages.by_type[type][entry_key]
 		log_entries.append_array(entry.get_all_entries())
 
 	return log_entries
@@ -320,7 +347,7 @@ static func get_by_type(type: String) -> Array:
 ## Returns an array of log entries represented as strings.[br]
 ## [br]
 ## [b]Parameters:[/b][br]
-## - [code]log_entries[/code] ([Array]): An array of ModLoaderLogEntry Objects.[br]
+## [param log_entries] ([Array]): An array of ModLoaderLogEntry Objects.[br]
 ## [br]
 ## [b]Returns:[/b][br]
 ## - [Array]: An array of log entries represented as strings.
@@ -349,8 +376,7 @@ static func _log(message: String, mod_name: String, log_type: String = "info", o
 	if only_once and _is_logged_before(log_entry):
 		return
 
-	if ModLoaderStore:
-		_store_log(log_entry)
+	_store_log(log_entry)
 
 	# Check if the scene_tree is available
 	if Engine.get_main_loop() and ModLoader:
@@ -375,37 +401,28 @@ static func _log(message: String, mod_name: String, log_type: String = "info", o
 			push_error(message)
 			_write_to_log_file(log_entry.get_entry())
 		"warning":
-			if _get_verbosity() >= VERBOSITY_LEVEL.WARNING:
+			if verbosity >= VERBOSITY_LEVEL.WARNING:
 				print(log_entry.get_prefix() + message)
 				push_warning(message)
 				_write_to_log_file(log_entry.get_entry())
 		"info", "success":
-			if _get_verbosity() >= VERBOSITY_LEVEL.INFO:
+			if verbosity >= VERBOSITY_LEVEL.INFO:
 				print(log_entry.get_prefix() + message)
 				_write_to_log_file(log_entry.get_entry())
 		"debug":
-			if _get_verbosity() >= VERBOSITY_LEVEL.DEBUG:
+			if verbosity >= VERBOSITY_LEVEL.DEBUG:
 				print(log_entry.get_prefix() + message)
 				_write_to_log_file(log_entry.get_entry())
 
 
 static func _is_mod_name_ignored(mod_name: String) -> bool:
-	if not ModLoaderStore:
+	if ignored_mods.is_empty():
 		return false
 
-	var ignored_mod_names := ModLoaderStore.ml_options.ignored_mod_names_in_log as Array
+	if mod_name in ignored_mods:
+		return true
 
-	if not ignored_mod_names.size() == 0:
-		if mod_name in ignored_mod_names:
-			return true
 	return false
-
-
-static func _get_verbosity() -> int:
-	if not ModLoaderStore:
-		return VERBOSITY_LEVEL.DEBUG
-
-	return ModLoaderStore.ml_options.log_level
 
 
 static func _store_log(log_entry: ModLoaderLogEntry) -> void:
@@ -413,27 +430,27 @@ static func _store_log(log_entry: ModLoaderLogEntry) -> void:
 
 	# Store in all
 	# If it's a new entry
-	if not ModLoaderStore.logged_messages.all.has(log_entry.get_md5()):
-		ModLoaderStore.logged_messages.all[log_entry.get_md5()] = log_entry
+	if not logged_messages.all.has(log_entry.get_md5()):
+		logged_messages.all[log_entry.get_md5()] = log_entry
 	# If it's a existing entry
 	else:
-		existing_entry = ModLoaderStore.logged_messages.all[log_entry.get_md5()]
+		existing_entry = logged_messages.all[log_entry.get_md5()]
 		existing_entry.time = log_entry.time
 		existing_entry.stack.push_back(log_entry)
 
 	# Store in by_mod
 	# If the mod is not yet in "by_mod" init the entry
-	if not ModLoaderStore.logged_messages.by_mod.has(log_entry.mod_name):
-		ModLoaderStore.logged_messages.by_mod[log_entry.mod_name] = {}
+	if not logged_messages.by_mod.has(log_entry.mod_name):
+		logged_messages.by_mod[log_entry.mod_name] = {}
 
-	ModLoaderStore.logged_messages.by_mod[log_entry.mod_name][log_entry.get_md5()] = log_entry if not existing_entry else existing_entry
+	logged_messages.by_mod[log_entry.mod_name][log_entry.get_md5()] = log_entry if not existing_entry else existing_entry
 
 	# Store in by_type
-	ModLoaderStore.logged_messages.by_type[log_entry.type.to_lower()][log_entry.get_md5()] = log_entry if not existing_entry else existing_entry
+	logged_messages.by_type[log_entry.type.to_lower()][log_entry.get_md5()] = log_entry if not existing_entry else existing_entry
 
 
 static func _is_logged_before(entry: ModLoaderLogEntry) -> bool:
-	if not ModLoaderStore.logged_messages.all.has(entry.get_md5()):
+	if not logged_messages.all.has(entry.get_md5()):
 		return false
 
 	return true
