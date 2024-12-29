@@ -181,7 +181,8 @@ func is_func_async(func_body_text: String) -> bool:
 	var in_multiline_string := false
 	var current_multiline_delimiter := ""
 
-	for line: String in lines:
+	for _line in lines:
+		var line: String = _line
 		var char_index := 0
 		while char_index < line.length():
 			if in_multiline_string:
