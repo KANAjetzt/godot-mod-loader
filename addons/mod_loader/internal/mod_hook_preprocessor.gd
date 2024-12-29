@@ -488,7 +488,7 @@ static func get_hook_check_else_string(
 		)
 
 
-# This function was taken from 
+# This function was taken from
 # https://github.com/godotengine/godot/blob/7e67b496ff7e35f66b88adcbdd5b252d01739cbb/modules/gdscript/tests/scripts/utils.notest.gd#L69
 # It is used instead of type_string because type_string does not exist in Godot 4.1
 static func get_type_name(type: Variant.Type) -> String:
