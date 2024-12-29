@@ -322,7 +322,7 @@ func fix_method_super(method_name: String, func_body: RegExMatch, text: String) 
 	)
 
 
-# For unknown reasons, RegeEx.sub() erases everything after the function body in 4.1,
+# For unknown reasons, RegEx.sub() erases everything after the function body in 4.1,
 # leaving only the first function in the script.
 func fix_method_super_4_1(method_name: String, func_body: RegExMatch, text: String) -> String:
 	var super_matches := regex_super_call.search_all(text, func_body.get_start(), func_body.get_end())
