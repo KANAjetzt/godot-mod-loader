@@ -15,7 +15,7 @@ const HASH_COLLISION_ERROR := \
 const MOD_LOADER_HOOKS_START_STRING := \
 	"\n# ModLoader Hooks - The following code has been automatically added by the Godot Mod Loader."
 
-static var engine_version_string := "%s.%s" % [Engine.get_version_info().major, Engine.get_version_info().minor]
+static var engine_version := [Engine.get_version_info().major, Engine.get_version_info().minor, Engine.get_version_info().patch]
 
 ## finds function names used as setters and getters (excluding inline definitions)
 ## group 2 and 4 contain the xetter names
@@ -313,7 +313,7 @@ func edit_vanilla_method(
 
 
 func fix_method_super(method_name: String, func_body: RegExMatch, text: String) -> String:	
-	if engine_version_string == "4.1":
+	if engine_version[0] == 4 and engine_version[1] == 1:
 		return fix_method_super_4_1(method_name, func_body, text)
 	
 	return regex_super_call.sub(
