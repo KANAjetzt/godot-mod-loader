@@ -311,10 +311,13 @@ func edit_vanilla_method(
 
 
 func fix_method_super(method_name: String, func_body: RegExMatch, text: String) -> String:
-	return regex_super_call.sub(
-		text, "super.%s" % method_name,
-		true, func_body.get_start(), func_body.get_end()
-	)
+	var super_matches := regex_super_call.search_all(text, func_body.get_start(), func_body.get_end())
+
+	for super_match in super_matches:
+		text = text.erase(super_match.get_start(), super_match.get_end() - super_match.get_start())
+		text = text.insert(super_match.get_start(), "super.%s" % method_name)
+
+	return text
 
 
 static func get_func_body_start_index(func_def_end: int, source_code: String) -> int:
