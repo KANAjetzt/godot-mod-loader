@@ -14,11 +14,13 @@ const HASH_COLLISION_ERROR := \
 	"MODDING HOOKS ERROR: Hash collision between %s and %s. The collision can be resolved by renaming one of the methods or changing their script's path."
 const MOD_LOADER_HOOKS_START_STRING := \
 	"\n# ModLoader Hooks - The following code has been automatically added by the Godot Mod Loader."
+const ENGINE_VERSION_HEX_4_2_2 := 0x040202
 
-static var engine_version := [Engine.get_version_info().major, Engine.get_version_info().minor, Engine.get_version_info().patch]
+
+static var engine_version_hex := Engine.get_version_info().hex
 
 ## finds function names used as setters and getters (excluding inline definitions)
-## group 2 and 4 contain the xetter names
+## group 2 and 4 contain the setter names
 var regex_getter_setter := RegEx.create_from_string("(.*?[sg]et\\s*=\\s*)(\\w+)(\\g<1>)?(\\g<2>)?")
 
 ## finds every instance where super() is called
@@ -313,8 +315,8 @@ func edit_vanilla_method(
 
 
 func fix_method_super(method_name: String, func_body: RegExMatch, text: String) -> String:	
-	if engine_version[0] == 4 and engine_version[1] == 1:
-		return fix_method_super_4_1(method_name, func_body, text)
+	if engine_version_hex < ENGINE_VERSION_HEX_4_2_2:
+		return fix_method_super_before_4_2_2(method_name, func_body, text)
 	
 	return regex_super_call.sub(
 		text, "super.%s" % method_name,
@@ -322,9 +324,11 @@ func fix_method_super(method_name: String, func_body: RegExMatch, text: String) 
 	)
 
 
-# For unknown reasons, RegEx.sub() erases everything after the function body in 4.1,
-# leaving only the first function in the script.
-func fix_method_super_4_1(method_name: String, func_body: RegExMatch, text: String) -> String:
+# https://github.com/godotengine/godot/pull/86052
+# Quote:
+# When the end argument of RegEx.sub was used, 
+# it would truncate the Subject String before even doing the substitution.
+func fix_method_super_before_4_2_2(method_name: String, func_body: RegExMatch, text: String) -> String:
 	var super_matches := regex_super_call.search_all(text, func_body.get_start(), func_body.get_end())
 
 	for super_match in super_matches:
