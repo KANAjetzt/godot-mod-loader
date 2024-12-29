@@ -1,3 +1,4 @@
+@tool
 class_name _ModLoaderModHookPreProcessor
 extends RefCounted
 
@@ -14,6 +15,7 @@ const HASH_COLLISION_ERROR := \
 const MOD_LOADER_HOOKS_START_STRING := \
 	"\n# ModLoader Hooks - The following code has been automatically added by the Godot Mod Loader."
 
+static var engine_version_string := "%s.%s" % [Engine.get_version_info().major, Engine.get_version_info().minor]
 
 ## finds function names used as setters and getters (excluding inline definitions)
 ## group 2 and 4 contain the xetter names
@@ -30,7 +32,6 @@ var regex_func_body := RegEx.create_from_string("(?smn)\\N*(\\n^(([\\t #]+\\N*)|
 
 ## Just await between word boundaries
 var regex_keyword_await := RegEx.create_from_string("\\bawait\\b")
-
 
 var hashmap := {}
 var script_paths_hooked := {}
@@ -311,7 +312,19 @@ func edit_vanilla_method(
 	return text
 
 
-func fix_method_super(method_name: String, func_body: RegExMatch, text: String) -> String:
+func fix_method_super(method_name: String, func_body: RegExMatch, text: String) -> String:	
+	if engine_version_string == "4.1":
+		return fix_method_super_4_1(method_name, func_body, text)
+	
+	return regex_super_call.sub(
+		text, "super.%s" % method_name,
+		true, func_body.get_start(), func_body.get_end()
+	)
+
+
+# For unknown reasons, RegeEx.sub() erases everything after the function body in 4.1,
+# leaving only the first function in the script.
+func fix_method_super_4_1(method_name: String, func_body: RegExMatch, text: String) -> String:
 	var super_matches := regex_super_call.search_all(text, func_body.get_start(), func_body.get_end())
 
 	for super_match in super_matches:
