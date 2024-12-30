@@ -329,12 +329,15 @@ func fix_method_super(method_name: String, func_body: RegExMatch, text: String) 
 # When the end argument of RegEx.sub was used, 
 # it would truncate the Subject String before even doing the substitution.
 func fix_method_super_before_4_2_2(method_name: String, func_body: RegExMatch, text: String) -> String:
-	var super_matches := regex_super_call.search_all(text, func_body.get_start(), func_body.get_end())
-
-	for super_match in super_matches:
-		text = text.erase(super_match.get_start(), super_match.get_end() - super_match.get_start())
-		text = text.insert(super_match.get_start(), "super.%s" % method_name)
-
+	var text_after_func_body_end := text.substr(func_body.get_end())
+	
+	text = regex_super_call.sub(
+		text, "super.%s" % method_name,
+		true, func_body.get_start(), func_body.get_end()
+	)
+	
+	text = text + text_after_func_body_end
+	
 	return text
 
 
