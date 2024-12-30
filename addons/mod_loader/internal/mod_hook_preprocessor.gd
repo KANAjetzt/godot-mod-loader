@@ -17,7 +17,7 @@ const MOD_LOADER_HOOKS_START_STRING := \
 const ENGINE_VERSION_HEX_4_2_2 := 0x040202
 
 
-static var engine_version_hex := Engine.get_version_info().hex
+static var engine_version_hex: int = Engine.get_version_info().hex
 
 ## finds function names used as setters and getters (excluding inline definitions)
 ## group 2 and 4 contain the setter names
