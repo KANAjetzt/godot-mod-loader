@@ -232,44 +232,44 @@ func method(one, #Somecomment
 two, three: int, #Morecomments
 four):
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_method, [one, two, three, four], 2863650651)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_method, [one, two, three, four], 2863650651)
 	else:
-		vanilla_2078531418_method(one, two, three, four)
+		return vanilla_2078531418_method(one, two, three, four)
 
 
 func super_something():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_super_something, [], 561212438)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_super_something, [], 561212438)
 	else:
-		vanilla_2078531418_super_something()
+		return vanilla_2078531418_super_something()
 
 
 func super_something_else():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_super_something_else, [], 683196062)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_super_something_else, [], 683196062)
 	else:
-		vanilla_2078531418_super_something_else()
+		return vanilla_2078531418_super_something_else()
 
 
 func sup_func_two():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_sup_func_two, [], 1626900374)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_sup_func_two, [], 1626900374)
 	else:
-		vanilla_2078531418_sup_func_two()
+		return vanilla_2078531418_sup_func_two()
 
 
 func sup_func():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_sup_func, [], 1698024413)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_sup_func, [], 1698024413)
 	else:
-		vanilla_2078531418_sup_func()
+		return vanilla_2078531418_sup_func()
 
 
 func other_test_func():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_other_test_func, [], 124073286)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_other_test_func, [], 124073286)
 	else:
-		vanilla_2078531418_other_test_func()
+		return vanilla_2078531418_other_test_func()
 
 
 func hello_hello():
@@ -316,38 +316,38 @@ func more_comment_testing():
 
 static func static_super():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_static_super, [], 1720709936)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_static_super, [], 1720709936)
 	else:
-		vanilla_2078531418_static_super()
+		return vanilla_2078531418_static_super()
 
 
 func this_is_so_cursed():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_this_is_so_cursed, [], 1705479347)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_this_is_so_cursed, [], 1705479347)
 	else:
-		vanilla_2078531418_this_is_so_cursed()
+		return vanilla_2078531418_this_is_so_cursed()
 
 
 func this_too():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_this_too, [], 1507098083)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_this_too, [], 1507098083)
 	else:
-		vanilla_2078531418_this_too()
+		return vanilla_2078531418_this_too()
 
 
 func please_stop():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_please_stop, [], 2851245561)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_please_stop, [], 2851245561)
 	else:
-		vanilla_2078531418_please_stop()
+		return vanilla_2078531418_please_stop()
 
 
 func why_would_you(put: int, \
 backslashes: ="\\", in_here: ="?!\n"):
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_why_would_you, [put, backslashes, in_here], 1414126584)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_why_would_you, [put, backslashes, in_here], 1414126584)
 	else:
-		vanilla_2078531418_why_would_you(put, backslashes, in_here)
+		return vanilla_2078531418_why_would_you(put, backslashes, in_here)
 
 
 func param_super(one: int, two: String) -> int:
@@ -373,30 +373,30 @@ func get_something():
 
 func set_something():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_set_something, [], 2687664211)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_set_something, [], 2687664211)
 	else:
-		vanilla_2078531418_set_something()
+		return vanilla_2078531418_set_something()
 
 
 func set_exclude_me():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_set_exclude_me, [], 1755202272)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_set_exclude_me, [], 1755202272)
 	else:
-		vanilla_2078531418_set_exclude_me()
+		return vanilla_2078531418_set_exclude_me()
 
 
 func get_exclude_me():
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_get_exclude_me, [], 2711326548)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_get_exclude_me, [], 2711326548)
 	else:
-		vanilla_2078531418_get_exclude_me()
+		return vanilla_2078531418_get_exclude_me()
 
 
 func definitely_a_coroutine(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine, [args], 1072984126)
+		return await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine, [args], 1072984126)
 	else:
-		await vanilla_2078531418_definitely_a_coroutine(args)
+		return await vanilla_2078531418_definitely_a_coroutine(args)
 
 
 func definitely_a_coroutine2(args: =[]):
@@ -415,41 +415,41 @@ func definitely_a_coroutine3(args: =[]):
 
 func definitely_a_coroutine4(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine4, [args], 1048737842)
+		return await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine4, [args], 1048737842)
 	else:
-		await vanilla_2078531418_definitely_a_coroutine4(args)
+		return await vanilla_2078531418_definitely_a_coroutine4(args)
 
 
 func absolutely_not_a_coroutine(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_absolutely_not_a_coroutine, [args], 2502244037)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_absolutely_not_a_coroutine, [args], 2502244037)
 	else:
-		vanilla_2078531418_absolutely_not_a_coroutine(args)
+		return vanilla_2078531418_absolutely_not_a_coroutine(args)
 
 
 func definitely_a_coroutine5(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine5, [args], 1048737843)
+		return await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine5, [args], 1048737843)
 	else:
-		await vanilla_2078531418_definitely_a_coroutine5(args)
+		return await vanilla_2078531418_definitely_a_coroutine5(args)
 
 
 func definitely_a_coroutine6(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine6, [args], 1048737844)
+		return await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine6, [args], 1048737844)
 	else:
-		await vanilla_2078531418_definitely_a_coroutine6(args)
+		return await vanilla_2078531418_definitely_a_coroutine6(args)
 
 
 func absolutely_not_a_coroutine2(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		_ModLoaderHooks.call_hooks(vanilla_2078531418_absolutely_not_a_coroutine2, [args], 969674647)
+		return _ModLoaderHooks.call_hooks(vanilla_2078531418_absolutely_not_a_coroutine2, [args], 969674647)
 	else:
-		vanilla_2078531418_absolutely_not_a_coroutine2(args)
+		return vanilla_2078531418_absolutely_not_a_coroutine2(args)
 
 
 func definitely_a_coroutine7(args: =[]):
 	if ModLoaderStore.any_mod_hooked:
-		await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine7, [args], 1048737845)
+		return await _ModLoaderHooks.call_hooks_async(vanilla_2078531418_definitely_a_coroutine7, [args], 1048737845)
 	else:
-		await vanilla_2078531418_definitely_a_coroutine7(args)
+		return await vanilla_2078531418_definitely_a_coroutine7(args)
