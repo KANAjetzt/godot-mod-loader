@@ -456,12 +456,13 @@ static func is_comment(text: String, start_index: int) -> bool:
 	return true
 
 
+# Get the left side substring of a line from a given start index
 static func get_line_left(text: String, start: int) -> String:
-	var left := text.substr(0, start)
-	var line_start_index := left.rfind("\n", start) + 1
-	return left.right(left.length() - line_start_index)
+	var line_start_index := text.rfind("\n", start) + 1
+	return text.substr(line_start_index, start - line_start_index)
 
 
+# Check if a static void type is declared
 func is_void(source_code: String, func_def_closing_paren_index: int, func_body_start_index: int) -> bool:
 	var func_def_end_index := func_body_start_index - 1 # func_body_start_index - 1 should be `:` position.
 	var type_zone := source_code.substr(func_def_closing_paren_index, func_def_end_index - func_def_closing_paren_index)
