@@ -104,6 +104,10 @@ func _load_config(config_file_path: String) -> void:
 	# Add the config to the configs dictionary
 	configs[mod_config.name] = mod_config
 
+	# Set it as the current_config if there is none
+	if not current_config:
+		current_config = mod_config
+
 
 # Update the mod_list of the current user profile
 func _set_current_config(new_current_config: ModConfig) -> void:
