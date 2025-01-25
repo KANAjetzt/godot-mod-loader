@@ -16,10 +16,10 @@ static func handle_script_extensions() -> void:
 			extension_paths.push_back(extension_path)
 		else:
 			ModLoaderLog.error("The child script path '%s' does not exist" % [extension_path], LOG_NAME)
-			
+
 	# Sort by inheritance
 	extension_paths.sort_custom(InheritanceSorting.new(), "_check_inheritances")
-	
+
 	# Load and install all extensions
 	for extension in extension_paths:
 		var script: Script = apply_extension(extension)
@@ -33,13 +33,10 @@ class InheritanceSorting:
 	var stack_cache := {}
 	# This dictionary's keys are mod_ids and it stores the corresponding position in the load_order
 	var load_order := {}
-	var unpacked_dir = _ModLoaderPath.get_unpacked_mods_dir_path()
-	
-	
+
 	func _init() -> void:
 		_populate_load_order_table()
-	
-	
+
 	# Comparator function.  return true if a should go before b.  This may
 	# enforce conditions beyond the stated inheritance relationship.
 	func _check_inheritances(extension_a: String, extension_b: String) -> bool:
@@ -58,8 +55,7 @@ class InheritanceSorting:
 			return true
 
 		return compare_mods_order(extension_a, extension_b)
-	
-	
+
 	# Returns a list of scripts representing all the ancestors of the extension
 	# script with the most recent ancestor last.
 	#
@@ -67,28 +63,26 @@ class InheritanceSorting:
 	func cached_inheritances_stack(extension_path: String) -> Array:
 		if stack_cache.has(extension_path):
 			return stack_cache[extension_path]
-			
+
 		var stack := []
-		
+
 		var parent_script: Script = load(extension_path)
 		while parent_script:
 			stack.push_front(parent_script.resource_path)
 			parent_script = parent_script.get_base_script()
 		stack.pop_back()
-		
+
 		stack_cache[extension_path] = stack
 		return stack
-	
-	
+
 	# Secondary comparator function for resolving scripts extending the same vanilla script
 	# Will return whether a comes before b in the load order
 	func compare_mods_order(extension_a: String, extension_b: String) -> bool:
 		var mod_a_id: String = _ModLoaderPath.get_mod_dir(extension_a)
 		var mod_b_id: String = _ModLoaderPath.get_mod_dir(extension_b)
-		
+
 		return load_order[mod_a_id] < load_order[mod_b_id]
-	
-	
+
 	# Populate a load order dictionary for faster access and comparison between mod ids
 	func _populate_load_order_table() -> void:
 		var mod_index := 0
