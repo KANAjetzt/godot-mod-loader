@@ -60,7 +60,8 @@ func _init() -> void:
 		return
 
 	# Load user profiles into ModLoaderStore
-	var _success_user_profile_load := ModLoaderUserProfile._load()
+	if ModLoaderUserProfile.is_initialized():
+		var _success_user_profile_load := ModLoaderUserProfile._load()
 
 	_load_mods()
 

@@ -187,6 +187,13 @@ static func get_all_as_array() -> Array:
 	return user_profiles
 
 
+# Returns true if the Mod User Profiles are initialized.
+# On the first execution of the game, user profiles might not yet be created.
+# Use this method to check if everything is ready to interact with the ModLoaderUserProfile API.
+static func is_initialized() -> bool:
+	return _ModLoaderFile.file_exists(FILE_PATH_USER_PROFILES)
+
+
 # Internal profile functions
 # =============================================================================
 
