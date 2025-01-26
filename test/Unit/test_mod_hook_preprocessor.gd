@@ -96,6 +96,7 @@ func test_process_script() -> void:
 	hook_pre_processor.process_begin()
 
 	var result_a := hook_pre_processor.process_script("res://test_mod_hook_preprocessor/test_script_A.gd")
+	# Using source_code.trim_prefix("#") to prevent hiding global class error.
 	var result_a_expected: String = load("res://test_mod_hook_preprocessor/test_script_A_processed.gd").source_code.trim_prefix("#")
 	var result_b := hook_pre_processor.process_script("res://test_mod_hook_preprocessor/test_script_B.gd")
 	var result_b_expected: String = load("res://test_mod_hook_preprocessor/test_script_B_processed.gd").source_code.trim_prefix("#")
