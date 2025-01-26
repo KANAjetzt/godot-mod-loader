@@ -36,6 +36,8 @@ var regex_func_body := RegEx.create_from_string("(?smn)\\N*(\\n^(([\\t #]+\\N*)|
 ## Just await between word boundaries
 var regex_keyword_await := RegEx.create_from_string("\\bawait\\b")
 
+## Just void between word boundaries
+var regex_keyword_void := RegEx.create_from_string("\\bvoid\\b")
 
 var hashmap := {}
 var script_paths_hooked := {}
@@ -93,7 +95,6 @@ func process_script(path: String, enable_hook_check := false) -> String:
 			continue
 
 		var type_string := get_return_type_string(method.return)
-		var is_constructor: bool = method.name == "_init"
 		var is_static := true if method.flags == METHOD_FLAG_STATIC + METHOD_FLAG_NORMAL else false
 
 		var func_def: RegExMatch = match_func_with_whitespace(method.name, source_code)
@@ -115,7 +116,11 @@ func process_script(path: String, enable_hook_check := false) -> String:
 		if not func_def: # If no valid function definition is found after processing.
 			continue # Skip to the next iteration.
 
-		var func_body_start_index := get_func_body_start_index(func_def.get_end(), source_code)
+		# Shift the func_def_end index back by one to start on the opening parentheses.
+		# Because the match_func_with_whitespace().get_end() is the index after the opening parentheses.
+		var closing_paren_index := get_closing_paren_index(func_def.get_end() - 1, source_code)
+
+		var func_body_start_index := get_func_body_start_index(closing_paren_index, source_code)
 		if func_body_start_index == -1: # The function is malformed, opening ( was not closed by )
 			continue # Means invalid Script, should never happen
 
@@ -124,6 +129,7 @@ func process_script(path: String, enable_hook_check := false) -> String:
 			continue # Means invalid Script, should never happen
 
 		var is_async := is_func_async(func_body.get_string())
+		var can_return := can_return(source_code, method.name, closing_paren_index, func_body_start_index)
 		var method_arg_string_with_defaults_and_types := get_function_parameters(method.name, source_code, is_static)
 		var method_arg_string_names_only := get_function_arg_name_string(method.args)
 
@@ -138,7 +144,7 @@ func process_script(path: String, enable_hook_check := false) -> String:
 			method_arg_string_names_only,
 			method_arg_string_with_defaults_and_types,
 			type_string,
-			is_constructor,
+			can_return,
 			is_static,
 			is_async,
 			hook_id,
@@ -328,13 +334,10 @@ func fix_method_super(method_name: String, func_body: RegExMatch, text: String) 
 	)
 
 
-static func get_func_body_start_index(func_def_end: int, source_code: String) -> int:
-	# Shift the func_def_end index back by one to start on the opening parentheses.
-	# Because the match_func_with_whitespace().get_end() is the index after the opening parentheses.
-	var closing_paren_index := get_closing_paren_index(func_def_end - 1, source_code)
+static func get_func_body_start_index(closing_paren_index: int, source_code: String) -> int:
 	if closing_paren_index == -1:
 		return -1
-	return source_code.find(":", closing_paren_index) +1
+	return source_code.find(":", closing_paren_index) + 1
 
 
 func match_method_body(method_name: String, func_body_start_index: int, text: String) -> RegExMatch:
@@ -352,7 +355,7 @@ static func build_mod_hook_string(
 	method_arg_string_names_only: String,
 	method_arg_string_with_defaults_and_types: String,
 	method_type: String,
-	is_constructor: bool,
+	can_return: bool,
 	is_static: bool,
 	is_async: bool,
 	hook_id: int,
@@ -360,7 +363,7 @@ static func build_mod_hook_string(
 	enable_hook_check := false,
 ) -> String:
 	var type_string := " -> %s" % method_type if not method_type.is_empty() else ""
-	var return_string := "return " if not is_constructor else ""
+	var return_string := "return " if can_return else ""
 	var static_string := "static " if is_static else ""
 	var await_string := "await " if is_async else ""
 	var async_string := "_async" if is_async else ""
@@ -439,6 +442,47 @@ static func is_top_level_func(text: String, result_start_index: int, is_static :
 	var pre_func_length := result_start_index - line_start_index
 
 	if pre_func_length > 0:
+		return false
+
+	return true
+
+
+# Make sure to only pass one line
+static func is_comment(text: String, start_index: int) -> bool:
+	# Check for # before the start_index
+	if text.rfind("#", start_index) == -1:
+		return false
+
+	return true
+
+
+# Get the left side substring of a line from a given start index
+static func get_line_left(text: String, start: int) -> String:
+	var line_start_index := text.rfind("\n", start) + 1
+	return text.substr(line_start_index, start - line_start_index)
+
+
+# Check if a static void type is declared
+func is_void(source_code: String, func_def_closing_paren_index: int, func_body_start_index: int) -> bool:
+	var func_def_end_index := func_body_start_index - 1 # func_body_start_index - 1 should be `:` position.
+	var type_zone := source_code.substr(func_def_closing_paren_index, func_def_end_index - func_def_closing_paren_index)
+
+	for void_match in regex_keyword_void.search_all(type_zone):
+		if is_comment(
+			get_line_left(type_zone, void_match.get_start()),
+			void_match.get_start()
+		):
+			continue
+
+		return true
+
+	return false
+
+
+func can_return(source_code: String, method_name: String, func_def_closing_paren_index: int, func_body_start_index: int) -> bool:
+	if method_name == "_init":
+		return false
+	if is_void(source_code, func_def_closing_paren_index, func_body_start_index):
 		return false
 
 	return true
