@@ -88,7 +88,10 @@ func load_configs() -> void:
 		_load_config(config_file_path)
 
 	# Set the current_config based on the user profile
-	current_config = ModLoaderConfig.get_current_config(dir_name)
+	if ModLoaderUserProfile.is_initialized():
+		current_config = ModLoaderConfig.get_current_config(dir_name)
+	else:
+		current_config = ModLoaderConfig.get_config(dir_name, ModLoaderConfig.DEFAULT_CONFIG_NAME)
 
 
 # Create a new ModConfig instance for each Config JSON and add it to the configs dictionary.
