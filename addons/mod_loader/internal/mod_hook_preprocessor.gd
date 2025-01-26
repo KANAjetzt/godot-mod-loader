@@ -118,9 +118,9 @@ func process_script(path: String, enable_hook_check := false) -> String:
 
 		# Shift the func_def_end index back by one to start on the opening parentheses.
 		# Because the match_func_with_whitespace().get_end() is the index after the opening parentheses.
-		var closing_paran_index := get_closing_paren_index(func_def.get_end() - 1, source_code)
+		var closing_paren_index := get_closing_paren_index(func_def.get_end() - 1, source_code)
 
-		var func_body_start_index := get_func_body_start_index(closing_paran_index, source_code)
+		var func_body_start_index := get_func_body_start_index(closing_paren_index, source_code)
 		if func_body_start_index == -1: # The function is malformed, opening ( was not closed by )
 			continue # Means invalid Script, should never happen
 
@@ -129,7 +129,7 @@ func process_script(path: String, enable_hook_check := false) -> String:
 			continue # Means invalid Script, should never happen
 
 		var is_async := is_func_async(func_body.get_string())
-		var can_return := can_return(source_code, method.name, closing_paran_index, func_body_start_index)
+		var can_return := can_return(source_code, method.name, closing_paren_index, func_body_start_index)
 		var method_arg_string_with_defaults_and_types := get_function_parameters(method.name, source_code, is_static)
 		var method_arg_string_names_only := get_function_arg_name_string(method.args)
 
