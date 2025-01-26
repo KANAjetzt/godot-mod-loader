@@ -65,15 +65,15 @@ func vanilla_2078459544_im_not_in_the_child_class() -> void:
 
 
 func _ready():
-	return await _ModLoaderHooks.call_hooks_async(vanilla_2078459544__ready, [], 2195022348)
+	await _ModLoaderHooks.call_hooks_async(vanilla_2078459544__ready, [], 2195022348)
 
 
 func _process(delta: float):
-	return _ModLoaderHooks.call_hooks(vanilla_2078459544__process, [delta], 319893654)
+	_ModLoaderHooks.call_hooks(vanilla_2078459544__process, [delta], 319893654)
 
 
 func that_is_super():
-	return _ModLoaderHooks.call_hooks(vanilla_2078459544_that_is_super, [], 3896778322)
+	_ModLoaderHooks.call_hooks(vanilla_2078459544_that_is_super, [], 3896778322)
 
 
 func give_default() -> String:
@@ -82,7 +82,7 @@ func give_default() -> String:
 
 func did_you_know_you_can_realy_write_your_function___like_this(param_1: String\
 , param_2=give_default()):
-	return _ModLoaderHooks.call_hooks(vanilla_2078459544_did_you_know_you_can_realy_write_your_function___like_this, [param_1, param_2], 833669474)
+	_ModLoaderHooks.call_hooks(vanilla_2078459544_did_you_know_you_can_realy_write_your_function___like_this, [param_1, param_2], 833669474)
 
 
 func _set_some_var_with_set(new_value):
@@ -94,4 +94,4 @@ func _get_some_var_with_get():
 
 
 func im_not_in_the_child_class():
-	return _ModLoaderHooks.call_hooks(vanilla_2078459544_im_not_in_the_child_class, [], 3426759564)
+	_ModLoaderHooks.call_hooks(vanilla_2078459544_im_not_in_the_child_class, [], 3426759564)
