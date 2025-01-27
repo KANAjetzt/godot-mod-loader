@@ -25,11 +25,14 @@ You can find detailed documentation, for game and mod developers, on the [Wiki](
 4. Use the [API Methods](https://wiki.godotmodding.com/#/api/mod_loader_api)   
    *A list of all available API Methods.*
 
-## Godot Version
-The current version of the Mod Loader is developed for Godot 3. The Godot 4 version is in progress on the [4.x branch](https://github.com/GodotModding/godot-mod-loader/tree/4.x) and can be used as long as no `class_name`s are in the project. Projects with `class_name`s are currently affected by an [engine bug](https://github.com/godotengine/godot/issues/83542). We are hopeful that this issue will be resolved in the near future. For more details and updates on the Godot 4 version, please follow this [issue](https://github.com/GodotModding/godot-mod-loader/issues/315) or join us on [our Discord](https://discord.godotmodding.com).
+## Godot Version  
+The Mod Loader currently supports Godot 3.5 and later, as well as Godot 4.1 and later. Feel free to [open an issue](https://github.com/GodotModding/godot-mod-loader/issues/new) if you need support for a different version.
 
-## Development
-The latest work-in-progress build can be found on the [development branch](https://github.com/GodotModding/godot-mod-loader/tree/development).
+## Development  
+The latest work-in-progress build for Godot 3 is available on the [development branch](https://github.com/GodotModding/godot-mod-loader/tree/development). For Godot 4, visit the [4.x branch](https://github.com/GodotModding/godot-mod-loader/tree/4.x).
+
+## Releases
+You can find the latest release versions and detailed installation instructions on the [Releases Page](https://github.com/GodotModding/godot-mod-loader/releases).
 
 ## Compatibility
 The Mod Loader supports the following platforms:
@@ -38,6 +41,9 @@ The Mod Loader supports the following platforms:
 - Linux
 - Android
 - iOS
+
+## Keep in touche
+For more details and updates join us on [our Discord](https://discord.godotmodding.com).
 
 ## Games Made Moddable by This Project
 - [Brotato](https://store.steampowered.com/app/1942280/Brotato/) by 
