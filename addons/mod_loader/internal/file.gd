@@ -207,7 +207,13 @@ static func remove_file(file_path: String) -> bool:
 
 static func file_exists(path: String) -> bool:
 	var file := File.new()
-	return file.file_exists(path)
+	var exists := file.file_exists(path)
+
+	# If the file is not found, check if it has been remapped because it is a Resource.
+	if not exists:
+		exists = ResourceLoader.exists(path)
+
+	return exists
 
 
 static func dir_exists(path: String) -> bool:

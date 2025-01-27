@@ -24,7 +24,7 @@ signal logged(entry)
 signal current_config_changed(config)
 
 # Prefix for this file when using mod_log or dev_log
-const LOG_NAME := "ModLoader"
+const LOG_NAME := "ModLoader:Loader"
 
 # --- DEPRECATED ---
 # UNPACKED_DIR was moved to ModLoaderStore.
@@ -60,7 +60,8 @@ func _init() -> void:
 		return
 
 	# Load user profiles into ModLoaderStore
-	var _success_user_profile_load := ModLoaderUserProfile._load()
+	if ModLoaderUserProfile.is_initialized():
+		var _success_user_profile_load := ModLoaderUserProfile._load()
 
 	_load_mods()
 

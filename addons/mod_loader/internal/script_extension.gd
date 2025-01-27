@@ -7,6 +7,7 @@ extends Reference
 
 const LOG_NAME := "ModLoader:ScriptExtension"
 
+
 # Sort script extensions by inheritance and apply them in order
 static func handle_script_extensions() -> void:
 	var extension_paths := []
@@ -15,10 +16,10 @@ static func handle_script_extensions() -> void:
 			extension_paths.push_back(extension_path)
 		else:
 			ModLoaderLog.error("The child script path '%s' does not exist" % [extension_path], LOG_NAME)
-			
+
 	# Sort by inheritance
 	extension_paths.sort_custom(InheritanceSorting.new(), "_check_inheritances")
-	
+
 	# Load and install all extensions
 	for extension in extension_paths:
 		var script: Script = apply_extension(extension)
@@ -30,6 +31,11 @@ static func handle_script_extensions() -> void:
 # a script extending script B if A is an ancestor of B.
 class InheritanceSorting:
 	var stack_cache := {}
+	# This dictionary's keys are mod_ids and it stores the corresponding position in the load_order
+	var load_order := {}
+
+	func _init() -> void:
+		_populate_load_order_table()
 
 	# Comparator function.  return true if a should go before b.  This may
 	# enforce conditions beyond the stated inheritance relationship.
@@ -45,11 +51,11 @@ class InheritanceSorting:
 				return a_stack[index] < b_stack[index]
 			last_index = index
 
-		if last_index < b_stack.size():
+		if last_index < b_stack.size() - 1:
 			return true
 
-		return extension_a < extension_b
-	
+		return compare_mods_order(extension_a, extension_b)
+
 	# Returns a list of scripts representing all the ancestors of the extension
 	# script with the most recent ancestor last.
 	#
@@ -57,17 +63,32 @@ class InheritanceSorting:
 	func cached_inheritances_stack(extension_path: String) -> Array:
 		if stack_cache.has(extension_path):
 			return stack_cache[extension_path]
-			
+
 		var stack := []
-		
+
 		var parent_script: Script = load(extension_path)
 		while parent_script:
 			stack.push_front(parent_script.resource_path)
 			parent_script = parent_script.get_base_script()
 		stack.pop_back()
-		
+
 		stack_cache[extension_path] = stack
 		return stack
+
+	# Secondary comparator function for resolving scripts extending the same vanilla script
+	# Will return whether a comes before b in the load order
+	func compare_mods_order(extension_a: String, extension_b: String) -> bool:
+		var mod_a_id: String = _ModLoaderPath.get_mod_dir(extension_a)
+		var mod_b_id: String = _ModLoaderPath.get_mod_dir(extension_b)
+
+		return load_order[mod_a_id] < load_order[mod_b_id]
+
+	# Populate a load order dictionary for faster access and comparison between mod ids
+	func _populate_load_order_table() -> void:
+		var mod_index := 0
+		for mod in ModLoaderStore.mod_load_order:
+			load_order[mod.dir_name] = mod_index
+			mod_index += 1
 
 
 static func apply_extension(extension_path: String) -> Script:
@@ -76,7 +97,7 @@ static func apply_extension(extension_path: String) -> Script:
 		ModLoaderLog.error("The child script path '%s' does not exist" % [extension_path], LOG_NAME)
 		return null
 
-	var child_script: Script = ResourceLoader.load(extension_path)
+	var child_script: Script = load(extension_path)
 	# Adding metadata that contains the extension script path
 	# We cannot get that path in any other way
 	# Passing the child_script as is would return the base script path
@@ -89,8 +110,7 @@ static func apply_extension(extension_path: String) -> Script:
 	# class multiple times.
 	# This is also needed to make Godot instantiate the extended class
 	# when creating singletons.
-	# The actual instance is thrown away.
-	child_script.new()
+	child_script.reload()
 
 	var parent_script: Script = child_script.get_base_script()
 	var parent_script_path: String = parent_script.resource_path
@@ -109,6 +129,7 @@ static func apply_extension(extension_path: String) -> Script:
 	child_script.take_over_path(parent_script_path)
 
 	return child_script
+
 
 # Reload all children classes of the vanilla class we just extended
 # Calling reload() the children of an extended class seems to allow them to be extended
