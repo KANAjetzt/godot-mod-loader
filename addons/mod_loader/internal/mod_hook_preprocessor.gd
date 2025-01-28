@@ -16,6 +16,11 @@ const MOD_LOADER_HOOKS_START_STRING := \
 	"\n# ModLoader Hooks - The following code has been automatically added by the Godot Mod Loader."
 const ENGINE_VERSION_HEX_4_2_2 := 0x040202
 
+## \\bfunc\\b\\s+		->	Match the word 'func' and one or more whitespace characters
+## \\b%s\\b 			->	the function name
+## (?:.*\\n*)*?\\s*\\( 	->	Match any character between zero and unlimited times, but be lazy
+## 							and only do this until a '(' is found.
+const REGEX_MATCH_FUNC_WITH_WHITESPACE := "\\bfunc\\b\\s+\\b%s\\b(?:.*\\n*)*?\\s*\\("
 
 static var engine_version_hex: int = Engine.get_version_info().hex
 
@@ -34,6 +39,9 @@ var regex_func_body := RegEx.create_from_string("(?smn)\\N*(\\n^(([\\t #]+\\N*)|
 
 ## Just await between word boundaries
 var regex_keyword_await := RegEx.create_from_string("\\bawait\\b")
+
+## Just void between word boundaries
+var regex_keyword_void := RegEx.create_from_string("\\bvoid\\b")
 
 var hashmap := {}
 var script_paths_hooked := {}
@@ -104,10 +112,19 @@ func process_script(path: String, enable_hook_check := false) -> String:
 		while not is_top_level_func(source_code, func_def.get_start(), is_static): # indent before "func"
 			func_def = match_func_with_whitespace(method.name, source_code, func_def.get_end())
 			if not func_def or max_loop <= 0: # Couldn't match any func like before
-				break # Means invalid Script, should never happen
+				break 	# Means invalid Script, unless it's a child script.
+								# In such cases, the method name might be listed in the script_method_list
+								# but absent in the actual source_code.
 			max_loop -= 1
 
-		var func_body_start_index := get_func_body_start_index(func_def.get_end(), source_code)
+		if not func_def: # If no valid function definition is found after processing.
+			continue # Skip to the next iteration.
+
+		# Shift the func_def_end index back by one to start on the opening parentheses.
+		# Because the match_func_with_whitespace().get_end() is the index after the opening parentheses.
+		var closing_paren_index := get_closing_paren_index(func_def.get_end() - 1, source_code)
+
+		var func_body_start_index := get_func_body_start_index(closing_paren_index, source_code)
 		if func_body_start_index == -1: # The function is malformed, opening ( was not closed by )
 			continue # Means invalid Script, should never happen
 
@@ -116,6 +133,7 @@ func process_script(path: String, enable_hook_check := false) -> String:
 			continue # Means invalid Script, should never happen
 
 		var is_async := is_func_async(func_body.get_string())
+		var can_return := can_return(source_code, method.name, closing_paren_index, func_body_start_index)
 		var method_arg_string_with_defaults_and_types := get_function_parameters(method.name, source_code, is_static)
 		var method_arg_string_names_only := get_function_arg_name_string(method.args)
 
@@ -130,7 +148,7 @@ func process_script(path: String, enable_hook_check := false) -> String:
 			method_arg_string_names_only,
 			method_arg_string_with_defaults_and_types,
 			type_string,
-			method.return.usage,
+			can_return,
 			is_static,
 			is_async,
 			hook_id,
@@ -341,13 +359,10 @@ func fix_method_super_before_4_2_2(method_name: String, func_body: RegExMatch, t
 	return text
 
 
-static func get_func_body_start_index(func_def_end: int, source_code: String) -> int:
-	# Shift the func_def_end index back by one to start on the opening parentheses.
-	# Because the match_func_with_whitespace().get_end() is the index after the opening parentheses.
-	var closing_paren_index := get_closing_paren_index(func_def_end - 1, source_code)
+static func get_func_body_start_index(closing_paren_index: int, source_code: String) -> int:
 	if closing_paren_index == -1:
 		return -1
-	return source_code.find(":", closing_paren_index) +1
+	return source_code.find(":", closing_paren_index) + 1
 
 
 func match_method_body(method_name: String, func_body_start_index: int, text: String) -> RegExMatch:
@@ -356,7 +371,7 @@ func match_method_body(method_name: String, func_body_start_index: int, text: St
 
 static func match_func_with_whitespace(method_name: String, text: String, offset := 0) -> RegExMatch:
 	# Dynamically create the new regex for that specific name
-	var func_with_whitespace := RegEx.create_from_string("func\\s+%s[\\\\\\s]*\\(" % method_name)
+	var func_with_whitespace := RegEx.create_from_string(REGEX_MATCH_FUNC_WITH_WHITESPACE % method_name)
 	return func_with_whitespace.search(text, offset)
 
 
@@ -365,7 +380,7 @@ static func build_mod_hook_string(
 	method_arg_string_names_only: String,
 	method_arg_string_with_defaults_and_types: String,
 	method_type: String,
-	return_prop_usage: int,
+	can_return: bool,
 	is_static: bool,
 	is_async: bool,
 	hook_id: int,
@@ -373,29 +388,27 @@ static func build_mod_hook_string(
 	enable_hook_check := false,
 ) -> String:
 	var type_string := " -> %s" % method_type if not method_type.is_empty() else ""
+	var return_string := "return " if can_return else ""
 	var static_string := "static " if is_static else ""
 	var await_string := "await " if is_async else ""
 	var async_string := "_async" if is_async else ""
-	var return_var := "var %s = " % "return_var" if not method_type.is_empty() or return_prop_usage == 131072 else ""
-	var method_return := "return " if not method_type.is_empty() or return_prop_usage == 131072 else ""
 	var hook_check := "if ModLoaderStore.any_mod_hooked:\n\t\t" if enable_hook_check else ""
 	var hook_check_else := get_hook_check_else_string(
-			method_return, await_string, method_prefix, method_name, method_arg_string_names_only
+			return_string, await_string, method_prefix, method_name, method_arg_string_names_only
 		) if enable_hook_check else ""
 
 
 	return """
 {STATIC}func {METHOD_NAME}({METHOD_PARAMS}){RETURN_TYPE_STRING}:
-	{HOOK_CHECK}{METHOD_RETURN}{AWAIT}_ModLoaderHooks.call_hooks{ASYNC}({METHOD_PREFIX}_{METHOD_NAME}, [{METHOD_ARGS}], {HOOK_ID}){HOOK_CHECK_ELSE}
+	{HOOK_CHECK}{RETURN}{AWAIT}_ModLoaderHooks.call_hooks{ASYNC}({METHOD_PREFIX}_{METHOD_NAME}, [{METHOD_ARGS}], {HOOK_ID}){HOOK_CHECK_ELSE}
 """.format({
 		"METHOD_PREFIX": method_prefix,
 		"METHOD_NAME": method_name,
 		"METHOD_PARAMS": method_arg_string_with_defaults_and_types,
 		"RETURN_TYPE_STRING": type_string,
 		"METHOD_ARGS": method_arg_string_names_only,
-		"METHOD_RETURN_VAR": return_var,
-		"METHOD_RETURN": method_return,
 		"STATIC": static_string,
+		"RETURN": return_string,
 		"AWAIT": await_string,
 		"ASYNC": async_string,
 		"HOOK_ID": hook_id,
@@ -459,6 +472,47 @@ static func is_top_level_func(text: String, result_start_index: int, is_static :
 	return true
 
 
+# Make sure to only pass one line
+static func is_comment(text: String, start_index: int) -> bool:
+	# Check for # before the start_index
+	if text.rfind("#", start_index) == -1:
+		return false
+
+	return true
+
+
+# Get the left side substring of a line from a given start index
+static func get_line_left(text: String, start: int) -> String:
+	var line_start_index := text.rfind("\n", start) + 1
+	return text.substr(line_start_index, start - line_start_index)
+
+
+# Check if a static void type is declared
+func is_void(source_code: String, func_def_closing_paren_index: int, func_body_start_index: int) -> bool:
+	var func_def_end_index := func_body_start_index - 1 # func_body_start_index - 1 should be `:` position.
+	var type_zone := source_code.substr(func_def_closing_paren_index, func_def_end_index - func_def_closing_paren_index)
+
+	for void_match in regex_keyword_void.search_all(type_zone):
+		if is_comment(
+			get_line_left(type_zone, void_match.get_start()),
+			void_match.get_start()
+		):
+			continue
+
+		return true
+
+	return false
+
+
+func can_return(source_code: String, method_name: String, func_def_closing_paren_index: int, func_body_start_index: int) -> bool:
+	if method_name == "_init":
+		return false
+	if is_void(source_code, func_def_closing_paren_index, func_body_start_index):
+		return false
+
+	return true
+
+
 static func get_return_type_string(return_data: Dictionary) -> String:
 	if return_data.type == 0:
 		return ""
@@ -491,15 +545,15 @@ func collect_getters_and_setters(text: String) -> Dictionary:
 
 
 static func get_hook_check_else_string(
-	method_return: String,
+	return_string: String,
 	await_string: String,
 	method_prefix: String,
 	method_name: String,
 	method_arg_string_names_only: String
 ) -> String:
-	return "\n\telse:\n\t\t{METHOD_RETURN}{AWAIT}{METHOD_PREFIX}_{METHOD_NAME}({METHOD_ARGS})".format(
+	return "\n\telse:\n\t\t{RETURN}{AWAIT}{METHOD_PREFIX}_{METHOD_NAME}({METHOD_ARGS})".format(
 			{
-				"METHOD_RETURN": method_return,
+				"RETURN": return_string,
 				"AWAIT": await_string,
 				"METHOD_PREFIX": method_prefix,
 				"METHOD_NAME": method_name,
