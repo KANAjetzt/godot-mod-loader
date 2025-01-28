@@ -25,7 +25,7 @@ const REGEX_MATCH_FUNC_WITH_WHITESPACE := "\\bfunc\\b\\s+\\b%s\\b(?:.*\\n*)*?\\s
 static var engine_version_hex: int = Engine.get_version_info().hex
 
 ## finds function names used as setters and getters (excluding inline definitions)
-## group 2 and 4 contain the setter names
+## group 2 and 4 contain the setter/getter names
 var regex_getter_setter := RegEx.create_from_string("(.*?[sg]et\\s*=\\s*)(\\w+)(\\g<1>)?(\\g<2>)?")
 
 ## finds every instance where super() is called
