@@ -61,7 +61,13 @@ func _init() -> void:
 	ModLoaderLog.info("game_install_directory: %s" % _ModLoaderPath.get_local_folder_dir(), LOG_NAME)
 
 	# Load user profiles into ModLoaderStore
-	var _success_user_profile_load := ModLoaderUserProfile._load()
+	if ModLoaderUserProfile.is_initialized():
+		var _success_user_profile_load := ModLoaderUserProfile._load()
+
+	# Create the default user profile if it does not already exist.
+	# This should only occur on the first run or if the JSON file was manually edited.
+	if not ModLoaderStore.user_profiles.has("default"):
+		var _success_user_profile_create := ModLoaderUserProfile.create_profile("default")
 
 	# --- Start loading mods ---
 	var loaded_count := 0
@@ -124,6 +130,9 @@ func _init() -> void:
 			loaded_count += 1
 
 	ModLoaderLog.success("DONE: Loaded %s mod files into the virtual filesystem" % loaded_count, LOG_NAME)
+
+	# Update the mod_list for each user profile
+	var _success_update_mod_lists := ModLoaderUserProfile._update_mod_lists()
 
 	# Update active state of mods based on the current user profile
 	ModLoaderUserProfile._update_disabled_mods()
@@ -203,14 +212,6 @@ func _init() -> void:
 
 
 func _ready():
-	# Create the default user profile if it doesn't exist already
-	# This should always be present unless the JSON file was manually edited
-	if not ModLoaderStore.user_profiles.has("default"):
-		var _success_user_profile_create := ModLoaderUserProfile.create_profile("default")
-
-	# Update the mod_list for each user profile
-	var _success_update_mod_lists := ModLoaderUserProfile._update_mod_lists()
-
 	# Hooks must be generated after all autoloads are available.
 	# Variables initialized with an autoload property cause errors otherwise.
 	if ModLoaderStore.any_mod_hooked:
