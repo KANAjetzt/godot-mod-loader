@@ -646,4 +646,4 @@ static func get_type_name(type: Variant.Type) -> String:
 		38: # TYPE_PACKED_VECTOR4_ARRAY
 			return "PackedVector4Array"
 	push_error("Argument `type` is invalid. Use `TYPE_*` constants.")
-	return "<invalid type>"
+	return "<unknown type %s>" % type
