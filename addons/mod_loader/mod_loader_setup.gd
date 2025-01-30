@@ -81,7 +81,7 @@ func setup_modloader() -> void:
 		# If no cli argument is passed, show message with OS.alert() and user has to restart the game
 		_:
 			OS.alert(
-				"The Godot ModLoader has been set up. The game is restarted to apply the changes. Confirm to restart."
+				"The Godot ModLoader has been set up. The game needs to be restarted to apply the changes. Confirm to restart."
 			)
 			restart()
 
