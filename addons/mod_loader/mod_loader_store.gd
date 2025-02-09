@@ -34,6 +34,8 @@ const MOD_LOADER_DEV_TOOL_URL := "https://github.com/GodotModding/godot-mod-tool
 
 var any_mod_hooked := false
 
+# Stores arrays of hook callables that will be applied to a function,
+# associated by a hash of the function name and script path
 # Example:
 # var modding_hooks := {
 # 	1917482423: [Callable, Callable],
@@ -41,9 +43,10 @@ var any_mod_hooked := false
 # }
 var modding_hooks := {}
 
+# Stores script paths and method names to be processed for hooks
 # Example:
 # var hooked_script_paths := {
-# 	"res://game/game.gd": true,
+# 	"res://game/game.gd": ["_ready", "do_something"],
 # }
 var hooked_script_paths := {}
 
@@ -108,6 +111,9 @@ var cache := {}
 # See: res://addons/mod_loader/resources/options_profile.gd
 var ml_options: ModLoaderOptionsProfile
 
+var has_feature := {
+	"editor" = OS.has_feature("editor")
+}
 
 # Methods
 # =============================================================================
@@ -115,16 +121,21 @@ var ml_options: ModLoaderOptionsProfile
 func _init():
 	_update_ml_options_from_options_resource()
 	_update_ml_options_from_cli_args()
+	_configure_logger()
 	# ModLoaderStore is passed as argument so the cache data can be loaded on _init()
 	_ModLoaderCache.init_cache(self)
 
 
-# Update ModLoader's options, via the custom options resource
-func _update_ml_options_from_options_resource() -> void:
-	# Path to the options resource
-	# See: res://addons/mod_loader/resources/options_current.gd
-	var ml_options_path := "res://addons/mod_loader/options/options.tres"
+func _exit_tree() -> void:
+	# Save the cache to the cache file.
+	_ModLoaderCache.save_to_file()
 
+
+# Update ModLoader's options, via the custom options resource
+#
+# Parameters:
+# - ml_options_path: Path to the options resource. See: res://addons/mod_loader/resources/options_current.gd
+func _update_ml_options_from_options_resource(ml_options_path := "res://addons/mod_loader/options/options.tres") -> void:
 	# Get user options for ModLoader
 	if not _ModLoaderFile.file_exists(ml_options_path) and not ResourceLoader.exists(ml_options_path):
 		ModLoaderLog.fatal(str("A critical file is missing: ", ml_options_path), LOG_NAME)
@@ -174,10 +185,8 @@ func _update_ml_options_from_options_resource() -> void:
 		# Update from the options in the resource
 		ml_options = override_options
 
-
-func _exit_tree() -> void:
-	# Save the cache to the cache file.
-	_ModLoaderCache.save_to_file()
+	if not ml_options.customize_script_path.is_empty():
+		ml_options.customize_script_instance = load(ml_options.customize_script_path).new(ml_options)
 
 
 # Update ModLoader's options, via CLI args
@@ -214,3 +223,10 @@ func _update_ml_options_from_cli_args() -> void:
 	var ignore_mod_names := _ModLoaderCLI.get_cmd_line_arg_value("--log-ignore")
 	if not ignore_mod_names == "":
 		ml_options.ignored_mod_names_in_log = ignore_mod_names.split(",")
+
+
+# Update static variables from the options
+func _configure_logger() -> void:
+	ModLoaderLog.verbosity = ml_options.log_level
+	ModLoaderLog.ignored_mods = ml_options.ignored_mod_names_in_log
+	ModLoaderLog.hint_color = ml_options.hint_color

@@ -30,8 +30,6 @@ signal new_hooks_created
 
 const LOG_NAME := "ModLoader"
 
-var is_in_editor := OS.has_feature("editor")
-
 
 func _init() -> void:
 	# if mods are not enabled - don't load mods
@@ -41,7 +39,7 @@ func _init() -> void:
 	# Only load the hook pack if not in the editor
 	# We can't use it in the editor - see https://github.com/godotengine/godot/issues/19815
 	# Mod devs can use the Dev Tool to generate hooks in the editor.
-	if not is_in_editor and _ModLoaderFile.file_exists(_ModLoaderPath.get_path_to_hook_pack()):
+	if not ModLoaderStore.has_feature.editor and _ModLoaderFile.file_exists(_ModLoaderPath.get_path_to_hook_pack()):
 		_load_mod_hooks_pack()
 
 	# Rotate the log files once on startup.
@@ -119,10 +117,10 @@ func _init() -> void:
 				# "don't use ZIPs with unpacked mods!"
 				# https://github.com/godotengine/godot/issues/19815
 				# https://github.com/godotengine/godot/issues/16798
-				if is_in_editor:
-					ModLoaderLog.warning(
-						"Loading any resource packs (.zip/.pck) with `load_resource_pack` will WIPE the entire virtual res:// directory.
-						If you have any unpacked mods in %s, they will not be loaded.Please unpack your mod ZIPs instead, and add them to %s" %
+				if ModLoaderStore.has_feature.editor:
+					ModLoaderLog.hint(
+						"Loading any resource packs (.zip/.pck) with `load_resource_pack` will WIPE the entire virtual res:// directory. " +
+						"If you have any unpacked mods in %s, they will not be loaded.Please unpack your mod ZIPs instead, and add them to %s" %
 						[_ModLoaderPath.get_unpacked_mods_dir_path(), _ModLoaderPath.get_unpacked_mods_dir_path()], LOG_NAME, true
 					)
 
@@ -216,9 +214,10 @@ func _ready():
 	# Variables initialized with an autoload property cause errors otherwise.
 	if ModLoaderStore.any_mod_hooked:
 		if OS.has_feature("editor"):
-			ModLoaderLog.warning("No mod hooks .zip will be created when running from the editor.", LOG_NAME)
-			ModLoaderLog.info("You can test mod hooks by running the preprocessor on the vanilla scripts once.", LOG_NAME)
-			ModLoaderLog.info("We recommend using the Mod Loader Dev Tool to process scripts in the editor. You can find it here: %s" % ModLoaderStore.MOD_LOADER_DEV_TOOL_URL, LOG_NAME)
+			_ModLoaderModHookPacker.start()
+			ModLoaderLog.hint("No mod hooks .zip will be created when running from the editor.", LOG_NAME)
+			ModLoaderLog.hint("You can test mod hooks by running the preprocessor on the vanilla scripts once.", LOG_NAME)
+			ModLoaderLog.hint("We recommend using the Mod Loader Dev Tool to process scripts in the editor. You can find it here: %s" % ModLoaderStore.MOD_LOADER_DEV_TOOL_URL, LOG_NAME)
 		else:
 			# Generate mod hooks
 			_ModLoaderModHookPacker.start()
