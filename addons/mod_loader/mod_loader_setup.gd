@@ -149,6 +149,7 @@ func handle_override_cfg() -> void:
 func handle_injection() -> void:
 	var is_embedded: bool = not FileAccess.file_exists(path.pck)
 	var injection_path: String = path.exe if is_embedded else path.pck
+	var file_extension := injection_path.get_extension()
 
 	ModLoaderSetupLog.debug("Start injection", LOG_NAME)
 	# Create temp dir
@@ -173,61 +174,52 @@ func handle_injection() -> void:
 	# Save the global class cache config file
 	combined_global_script_class_cache_file.save(path.temp_global_script_class_cache_path)
 
-	inject(injection_path)
+	inject(injection_path, is_embedded)
 
 	# Rename vanilla
-	if not is_embedded:
-		DirAccess.rename_absolute(
-			path.pck,
-			path.pck.trim_suffix("%s.pck" % file_name.pck).path_join(
-				"%s-vanilla.pck" % file_name.pck
-			)
-		)
-		ModLoaderSetupLog.debug(
-			(
-				'Renamed "%s" to "%s"'
-				% [
-					path.pck,
-					path.pck.trim_suffix("%s.pck" % file_name.pck).path_join(
-						"%s-vanilla.pck" % file_name.pck
-					)
-				]
-			),
-			LOG_NAME
-		)
-		# Rename modded
-		DirAccess.rename_absolute(
-			path.game_base_dir.path_join("%s-modded.pck" % file_name.pck),
-			"%s.pck" % path.game_base_dir.path_join(file_name.pck)
-		)
-		ModLoaderSetupLog.debug(
-			(
-				'Renamed "%s" to "%s"'
-				% [
-					path.game_base_dir.path_join("%s-modded.pck" % file_name.pck),
-					"%s.pck" % path.game_base_dir.path_join(file_name.pck)
-				]
-			),
-			LOG_NAME
-		)
+	var modded_path := "%s-modded.%s" % [injection_path.get_basename(), file_extension]
+	var vanilla_path := "%s-vanilla.%s" % [injection_path.get_basename(), file_extension]
 
-	#clean_up()
+	DirAccess.rename_absolute(injection_path, vanilla_path)
+	ModLoaderSetupLog.debug('Renamed "%s" to "%s"' % [injection_path, vanilla_path], LOG_NAME)
+
+	# Rename modded
+	DirAccess.rename_absolute(modded_path, injection_path)
+	ModLoaderSetupLog.debug('Renamed "%s" to "%s"' % [modded_path, injection_path], LOG_NAME)
+
+	clean_up()
 
 
 # Add modified binary to the pck
-func inject(injection_path: String) -> void:
-	var arguments := [
-		"--pck-patch=%s" % injection_path,
-		"--patch-file=%s=%s" % [path.temp_project_binary_path, path.project_binary_path_internal],
+func inject(injection_path: String, is_embedded := false) -> void:
+	var arguments := []
+	arguments.push_back("--pck-patch=%s" % injection_path)
+	if is_embedded:
+		arguments.push_back("--embed=%s" % injection_path)
+	arguments.push_back(
+		"--patch-file=%s=%s" % [path.temp_project_binary_path, path.project_binary_path_internal]
+	)
+	arguments.push_back(
 		(
 			"--patch-file=%s=%s"
 			% [
 				path.temp_global_script_class_cache_path,
 				path.global_script_class_cache_path_internal
 			]
-		),
-		"--output=%s" % path.game_base_dir.path_join("%s-modded.pck" % file_name.pck),
-	]
+		)
+	)
+	arguments.push_back(
+		(
+			"--output=%s"
+			% path.game_base_dir.path_join(
+				(
+					"%s-modded.%s"
+					% [file_name[injection_path.get_extension()], injection_path.get_extension()]
+				)
+			)
+		)
+	)
+
 	# For unknown reasons the output only displays a single "[" - so only the executed arguments are logged.
 	ModLoaderSetupLog.debug("Injection started: %s %s" % [path.gdre, arguments], LOG_NAME)
 	var output := []
