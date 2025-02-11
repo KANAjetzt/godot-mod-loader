@@ -284,3 +284,21 @@ static func copy_file(from: String, to: String) -> void:
 		return
 
 	file_to.store_buffer(file_from_content)
+
+
+static func unzip(src_path: String, dst_path := src_path.get_base_dir()) -> void:
+	var reader := ZIPReader.new()
+	var err := reader.open(src_path)
+	if err != OK:
+		ModLoaderSetupLog.error("Failed to open zip. Error: \"%s\"." % error_string(err) , LOG_NAME)
+		return PackedByteArray()
+	for zip_file_path in reader.get_files():
+		ModLoaderSetupLog.info("Reading file %s." % zip_file_path, LOG_NAME)
+		var buffer := reader.read_file(zip_file_path)
+		var file := FileAccess.open(dst_path.path_join(zip_file_path), FileAccess.WRITE)
+		if not file:
+			ModLoaderSetupLog.error("Failed to write file. Error: \"%s\"." % error_string(FileAccess.get_open_error()) , LOG_NAME)
+			return
+		ModLoaderSetupLog.info("Storing file %s." % dst_path.path_join(zip_file_path), LOG_NAME)
+		file.store_buffer(buffer)
+	reader.close()
