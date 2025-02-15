@@ -14,15 +14,12 @@ const HASH_COLLISION_ERROR := \
 	"MODDING HOOKS ERROR: Hash collision between %s and %s. The collision can be resolved by renaming one of the methods or changing their script's path."
 const MOD_LOADER_HOOKS_START_STRING := \
 	"\n# ModLoader Hooks - The following code has been automatically added by the Godot Mod Loader."
-const ENGINE_VERSION_HEX_4_2_2 := 0x040202
 
 ## \\bfunc\\b\\s+		->	Match the word 'func' and one or more whitespace characters
 ## \\b%s\\b 			->	the function name
 ## (?:.*\\n*)*?\\s*\\( 	->	Match any character between zero and unlimited times, but be lazy
 ## 							and only do this until a '(' is found.
 const REGEX_MATCH_FUNC_WITH_WHITESPACE := "\\bfunc\\b\\s+\\b%s\\b(?:.*\\n*)*?\\s*\\("
-
-static var engine_version_hex: int = Engine.get_version_info().hex
 
 ## finds function names used as setters and getters (excluding inline definitions)
 ## group 2 and 4 contain the setter/getter names
@@ -337,7 +334,7 @@ func edit_vanilla_method(
 
 
 func fix_method_super(method_name: String, func_body: RegExMatch, text: String) -> String:
-	if engine_version_hex < ENGINE_VERSION_HEX_4_2_2:
+	if _ModLoaderGodot.is_version_below(_ModLoaderGodot.ENGINE_VERSION_HEX_4_2_2):
 		return fix_method_super_before_4_2_2(method_name, func_body, text)
 
 	return regex_super_call.sub(
