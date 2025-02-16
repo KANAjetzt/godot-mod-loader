@@ -193,6 +193,7 @@ func handle_injection() -> void:
 # Add modified binary to the pck
 func inject(injection_path: String, is_embedded := false) -> void:
 	var arguments := []
+	arguments.push_back("--headless")
 	arguments.push_back("--pck-patch=%s" % injection_path)
 	if is_embedded:
 		arguments.push_back("--embed=%s" % injection_path)
