@@ -108,8 +108,8 @@ static func _decompile_and_load_if_needed() -> bool:
 	# C:/path/to/game/
 	var game_base_dir: String = ModLoaderSetupUtils.get_local_folder_dir()
 	# C:/path/to/game/addons/mod_loader
-	var mod_loader_dir: String = game_base_dir.path_join("GDPatch/mods/GDPatchxGodotModLoader/data/addons/mod_loader")
-	var gdre_path: String = mod_loader_dir.path_join(ModLoaderSetup.get_gdre_path())
+	var mod_loader_dir: String = game_base_dir.path_join("GDPatch/mods/GodotModLoader/data/addons/mod_loader")
+	var gdre_path: String = mod_loader_dir.path_join("vendor/gdre/gdre_tools.exe")
 	var decomp_dir := mod_loader_dir.path_join("decomp/")
 	var zip_path := decomp_dir.path_join("inject.zip")
 

@@ -40,7 +40,7 @@ var downloads_completed_count := 0 :
 func _ready() -> void:
 	print("path_exe: ", path_exe)
 	print("path_exe_base_dir: ", path_exe_base_dir)
-	#get_dependencies()
+	get_dependencies()
 	continue_setup()
 
 
@@ -72,6 +72,9 @@ func continue_setup() -> void:
 	# Copy GDPatch Mod files
 	copy_file(path_exe_base_dir.path_join("GDPatch/mods/GodotModLoader/data/addons/mod_loader/setup/gdpatch_mod.toml"), path_exe_base_dir.path_join("GDPatch/mods/GodotModLoader/gdpatch_mod.toml"))
 	copy_file(path_exe_base_dir.path_join("GDPatch/mods/GodotModLoader/data/addons/mod_loader/setup/patcher.lua"), path_exe_base_dir.path_join("GDPatch/mods/GodotModLoader/patcher.lua"))
+
+	# Copy GDPatch dll
+	copy_file(path_dependencies_temp_gdpatch.path_join("winmm.dll"), path_exe_base_dir.path_join("winmm.dll"))
 
 	# Delete override.cfg
 	if FileAccess.file_exists(path_exe_base_dir.path_join("override.cfg")):
