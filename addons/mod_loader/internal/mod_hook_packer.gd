@@ -108,10 +108,10 @@ static func _decompile_and_load_if_needed() -> bool:
 	# C:/path/to/game/
 	var game_base_dir: String = ModLoaderSetupUtils.get_local_folder_dir()
 	# C:/path/to/game/addons/mod_loader
-	var mod_loader_dir: String = game_base_dir + "addons/mod_loader/"
-	var gdre_path: String = mod_loader_dir + ModLoaderSetup.get_gdre_path()
-	var decomp_dir := mod_loader_dir + "decomp/"
-	var zip_path := decomp_dir + "inject.zip"
+	var mod_loader_dir: String = game_base_dir.path_join("GDPatch/mods/GDPatchxGodotModLoader/data/addons/mod_loader")
+	var gdre_path: String = mod_loader_dir.path_join(ModLoaderSetup.get_gdre_path())
+	var decomp_dir := mod_loader_dir.path_join("decomp/")
+	var zip_path := decomp_dir.path_join("inject.zip")
 
 	if not DirAccess.dir_exists_absolute(decomp_dir):
 		DirAccess.make_dir_recursive_absolute(decomp_dir)
@@ -132,7 +132,7 @@ static func _decompile_and_load_if_needed() -> bool:
 	# the main pack name is the same as the .exe name
 	# if --main-pack cli arg is not set
 	var pck: String = exe if cli_arg_pck == "" else cli_arg_pck
-	
+
 	# C:/path/to/game/game.pck
 	var pck_path := game_base_dir.path_join(pck + ".pck")
 
@@ -188,7 +188,7 @@ static func _decompile_and_load_if_needed() -> bool:
 		zip_writer.start_file(script_path)
 		zip_writer.write_file(script_content.to_utf8_buffer())
 		zip_writer.close_file()
-		
+
 		# Remap
 		var remap_path := file_path + ".remap"
 		if FileAccess.file_exists(remap_path):

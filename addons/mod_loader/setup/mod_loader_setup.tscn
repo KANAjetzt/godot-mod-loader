@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dvgyvr1iuhk6o"]
+
+[ext_resource type="Script" uid="uid://b0goxb1n0eqvr" path="res://addons/mod_loader/setup/mod_loader_setup.gd" id="1_d1gtv"]
+
+[node name="ModLoaderSetup" type="Node2D" unique_id=2089621059]
+script = ExtResource("1_d1gtv")

@@ -1,0 +1,6 @@
+id = "godot_mod_loader"
+
+[meta]
+name = "Godot Mod Loader Compatibility"
+description = "Compatibility layer to load Godot Mod Loader on top of GDPatch"
+authors = ["NotNite"]
